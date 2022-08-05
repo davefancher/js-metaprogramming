@@ -1,0 +1,13 @@
+# git files
+.gitattributes export-ignore
+.gitignore export-ignore
+
+# General text files
+README.md export-ignore
+
+# Local configuraiton files
+.env export-ignore
+
+* text=auto
+*.sh text eol=lf
+*.js text eol=crlf
