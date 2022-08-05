@@ -1,0 +1,457 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>JavaScript Metaprogramming</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/moon.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h2>JavaScript Metaprogramming</h2>
+					<hr />
+					<h3>
+						Dave Fancher<br />
+						<span style="font-size: .5em; opacity: 50%;">
+							Lead Software Engineer - Vibenomics
+						</span>
+					</h3>
+				</section>
+
+				<section>
+					<h2>About This Presentation</h2>
+					<ul>
+						<li class="fragment">Covers the evolution of JavaScript's metaprogramming capabilities</li>
+						<li class="fragment">Node.js-centric (v14)</li>
+						<li class="fragment">Current project makes extensive use of metaprogramming techniques</li>
+						<li class="fragment">My background</li>
+					</ul>
+
+					<aside class="notes">
+						<ul>
+							<li>Programming for ~20 years</li>
+							<li>
+								Traditionally in MS technologies
+								<ul>
+									<li>Mostly .NET</li>
+									<li>C#</li>
+									<li>F#</li>
+								</ul>
+							</li>
+							<li>JS for the past ~4 years</li>
+							<li>Node.js</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<h2>What is Metaprogramming?</h2>
+					<ul>
+						<li class="fragment">Programming about programming/Code about code</li>
+						<li class="fragment">
+							3 Categories
+							<ul>
+								<li class="fragment">Code Generation - Code writing code</li>
+								<li class="fragment">Reflection - Interrogation and manipulation</li>
+								<li class="fragment">Intercession - Intercepting behavior</li>
+							</ul>
+						</li>						
+					</ul>
+
+					<aside class="notes">
+						<ul>
+							<li>Most have been available in JS since its early days</li>
+						</ul>
+					</aside>
+				</section>
+
+				<section>
+					<section>
+						<h2>Code Generation</h2>
+						<h4>Code writing code</h4>
+					</section>					
+
+					<section>
+						<h2>eval (ugh...)</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const sayHello =
+								    eval("name => `[eval] Hello, ${name}!`;");
+
+								sayHello("Dave"); // [eval] Hello, Dave!
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>eval - Scope/Access Issues</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const name = "Dave";
+
+								const sayHello =
+								    eval("() => `[eval] Hello, ${name}`");
+								
+								sayHello();	// [eval] Hello, Dave!
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Function Constructor</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const sayHello =
+								    new Function(
+								        "name",
+								        "return `[func] Hello, ${name}!`");
+
+								sayHello("Dave"); // [func] Hello, Dave!
+							</code>
+						</pre>
+
+						<aside class="notes">
+							Slight improvement over eval
+						</aside>
+					</section>
+
+					<section>
+						<h2>Function Constructor - Global Scope</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const sayHello =
+								    new Function(
+								        "return `[func] Hello, ${name}`");
+
+								const name = "Dave";
+
+								sayHello();  // ?
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Function Constructor - Global Scope</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const sayHello =
+								    new Function(
+								        "return `[func] Hello, ${name}`");
+
+								const name = "Dave";
+
+								sayHello();  // ReferenceError: name is not defined
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Function Constructor - Parameters</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const sayHello =
+									new Function(
+										"name", "return `[func] Hello, ${name}`");
+
+								sayHello("Dave"); // [func] Hello, Dave
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>vm Module (Node.js)</h2>
+						
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const vm = require("node:vm");
+
+								global.scopeName = "global";
+
+								const script =
+									new vm.Script(
+										"name => `[vm - ${scopeName} context] Hello, ${name}`;"
+									);
+								
+								const sayHelloThisContext =
+									script.runInThisContext();
+
+								const sayHelloNewContext =
+									script.runInNewContext({ scopeName: "new" });
+								
+								sayHelloThisContext("Dave"); // [vm - global context] Hello, Dave
+								sayHelloNewContext("Dave");  // [vm - new context] Hello, Dave 
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>V8 Virtual Machine</li>
+								<li>Allows running code in a separate global context</li>
+							</ul>
+						</aside>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Legacy Reflection/Introspection</h2>
+
+						<h4>Interrogate and Manipulate</h4>
+					</section>
+
+					<section>
+						<h2>Detecting Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								};
+	
+								"firstName" in myObject;  // true
+								"lastName" in myObject;   // true
+								"middleName" in myObject; // false
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Enumerating Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								};
+
+								const allAttrs = [];
+
+								for (attr in myObject) {
+									allAttrs.push(attr);
+								}
+
+								// [ "firstName", "lastName", "age" ]
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Copying Values</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								};
+
+								const newObj = {};
+								for (attr in myObject) {
+									newObj[attr] = myObject[attr];
+								}
+
+								/* {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								} */
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Removing Properties</h2>
+	
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								};
+	
+								delete myObject.age;        // true
+								delete myObject.middleName; // true
+	
+								"firstName" in myObject;    // true
+								"lastName" in myObject;     // true
+								"age" in myObject;          // false
+							</code>
+						</pre>
+					</section>
+	
+					<section>
+						<h2>Determing Types...maybe</h2>
+	
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								// Numbers
+								typeof 37;                  // number
+								typeof Number(37);          // number
+								typeof new Number(37);      // object
+								typeof NaN;                 // number
+								typeof Number("nope");      // number
+								
+								// Strings
+								typeof "Hello";             // string
+								typeof String("Hello");     // string
+								typeof new String("Hello"); // object
+	
+								// Booleans
+								typeof true;                // boolean
+								typeof Boolean(1);          // boolean
+								typeof new Boolean(1);      // object
+	
+								// Date
+								typeof new Date();          // object
+								
+								// Arrays
+								typeof [ 1, 2, 3 ];         // object
+								
+								// nils
+								typeof null;                // object
+								typeof undefined;           // undefined
+								
+								// functions
+								typeof (function (name) {
+									return `Hello, ${name}`;
+								});                         // function
+								
+								typeof (name => `Hello, ${name}`);  // function
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<p>typeof provides rudimentary support for determining a variable's type.</p>
+							<p>As the MDN docs say "typeof is very useful, but it's not as versatile as might be required.". This is due to typeof often returning different things depending on how a value was created or how JavaScript represents other types internally.</p>
+							<p>MDN also provides an alternative implementation but I typically use lodash since I already have a dependency on it.</p>
+						</aside>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Revised Reflection/Introspection</h2>
+						<h4>Same tricks, newer API</h4>
+					</section>
+
+					<section>
+						<h2>Enumerating Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								Object.getOwnPropertyNames(myObject); // [ "firstName", "lastName" ]
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Defining Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								void Object.defineProperty(
+									myObject,
+									"age",
+									{
+										enumerable: true,
+										value: 42
+									});
+								
+								void Object.defineProperty(
+									myObject,
+									"middleName",
+									{
+										enumerable: false,
+										value: "William"
+									});
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>Object.defineProperty adds (or modifies) a property and returns the object it affected</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Enumerating Properties Revisited</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								void Object.defineProperty(
+									myObject,
+									"age",
+									{
+										enumerable: true,
+										value: 42
+									});
+								
+								void Object.defineProperty(
+									myObject,
+									"middleName",
+									{
+										enumerable: false,
+										value: "William"
+									});
+
+								Object.getOwnPropertyNames(myObject); // [ "firstName", "lastName", "age", "middleName" ]
+								Object.keys(myObject); // [ "firstName", "lastName", "age" ]
+							</code>
+						</pre>
+					</section>
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+			});
+		</script>
+	</body>
+</html>
