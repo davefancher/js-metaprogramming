@@ -359,7 +359,7 @@
 						<h2>Enumerating Properties</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
@@ -374,7 +374,7 @@
 						<h2>Defining Properties</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6-12,14-20,22-29">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
@@ -416,13 +416,14 @@
 						<h2>Property Descriptors</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6,8-15">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
 								};
 
 								Object.getOwnPropertyDescriptor(myObject, "firstName");
+
 								/*
 								{
 									value: 'Dave',
@@ -443,7 +444,7 @@
 						<h2>Enumerating Properties Revisited</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
+							<code class="javascript" data-trim data-noescape data-line-numbers="16-17|19-20">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
@@ -452,18 +453,12 @@
 								void Object.defineProperty(
 									myObject,
 									"age",
-									{
-										enumerable: true,
-										value: 42
-									});
+									{ enumerable: true, value: 42 });
 								
 								void Object.defineProperty(
 									myObject,
 									"middleName",
-									{
-										enumerable: false,
-										value: "William"
-									});
+									{ enumerable: false, value: "William" });
 
 								Object.getOwnPropertyNames(myObject);
 								// [ "firstName", "lastName", "age", "middleName" ]
@@ -535,6 +530,157 @@
 						</pre>
 					</section>
 
+					<section>
+						<h2>Enumerating Property Values</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="7">
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								};
+
+								Object.values(myObject); // [ "Dave", "Fancher", 42 ]
+							</code>
+						</pre>
+
+						<aside class="notes">
+							Object.values returns an array of all of the property values within an object in the order in which they're defined
+						</aside>
+					</section>
+
+					<section>
+						<h2>Objects as Key/Value Pairs</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="16-17">
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher"
+								};
+
+								void Object.defineProperty(
+									myObject,
+									"age",
+									{ enumerable: true, value: 42 });
+
+								void Object.defineProperty(
+									myObject,
+									"middleName",
+									{ enumerable: false, value: "William" });
+
+								Object
+								    .entries(myObject)
+								    .map(([ k, v ]) => `${k} is ${v}`)
+								    .join("; ");
+									
+								// firstName is Dave; lastName is Fancher; age is 42
+							</code>
+						</pre>
+
+						<aside class="notes">
+							Essentially a combination of Object.keys and Object.values, Object.entries gets an array of the own key/value pairs from an object
+						</aside>
+					</section>
+
+					<section>
+						<h2>Objects from Key/Value Pairs</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="16-17">
+								const entries = [
+								    [ "firstName", "Dave" ],
+								    [ "lastName", "Fancher" ],
+								    [ "age", 42 ]
+								];
+
+								Object.fromEntries(entries);
+
+								/*
+								{
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								}
+								*/
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Cloning Objects</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers=>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								// The target object is the first argument
+								const myClone =
+									Object.assign(
+										{},
+										myObject);
+
+								/*
+								{
+									firstName: "Dave",
+									lastName: "Fancher"
+								}
+								*/
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>Copies <em>only</em> enumerable properties!</li>
+								<li>Not suitable for deep cloning since references a copied</li>
+							</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Merging Objects</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher"
+								};
+								
+								const myAddress = {
+								    address: { city: "Carmel", state: "IN" }
+								};
+
+								Object.assign(
+								    myObject,
+								    { firstName: "David", age: 42 },
+								    myAddress);
+
+								/*
+								{
+									firstName: "David",
+									lastName: "Fancher",
+									age: 42,
+									address: {
+										city: "Indianapolis",
+										state: "IN"
+									}
+								}
+								*/
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>Copies <em>only</em> enumerable properties!</li>
+								<li>Not suitable for deep cloning since references a copied</li>
+							</ul>
+						</aside>
+					</section>
 				</section>
 			</div>
 		</div>
