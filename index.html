@@ -384,22 +384,58 @@
 									myObject,
 									"age",
 									{
-										enumerable: true,
-										value: 42
+										enumerable: true,
+										value: 42
 									});
 								
 								void Object.defineProperty(
 									myObject,
 									"middleName",
 									{
-										enumerable: false,
-										value: "William"
+										enumerable: false,
+										value: "William"
 									});
+
+								/*
+								{
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42,
+									middleName: "William"
+								}
+								*/
 							</code>
 						</pre>
 
 						<aside class="notes">
 							<ul>Object.defineProperty adds (or modifies) a property and returns the object it affected</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Property Descriptors</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								Object.getOwnPropertyDescriptor(myObject, "firstName");
+								/*
+								{
+									value: 'Dave',
+									writable: true,
+									enumerable: true,
+									configurable: true
+								}
+								*/
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<p>Metadata about each property including the value, whether the property should be included for enumeration, whether the property descriptor can be changed, and even middleware functions for intercepting (trapping) gets/sets</p>
 						</aside>
 					</section>
 
@@ -417,23 +453,88 @@
 									myObject,
 									"age",
 									{
-										enumerable: true,
-										value: 42
+										enumerable: true,
+										value: 42
 									});
 								
 								void Object.defineProperty(
 									myObject,
 									"middleName",
 									{
-										enumerable: false,
-										value: "William"
+										enumerable: false,
+										value: "William"
 									});
 
-								Object.getOwnPropertyNames(myObject); // [ "firstName", "lastName", "age", "middleName" ]
-								Object.keys(myObject); // [ "firstName", "lastName", "age" ]
+								Object.getOwnPropertyNames(myObject);
+								// [ "firstName", "lastName", "age", "middleName" ]
+								
+								Object.keys(myObject);
+								// [ "firstName", "lastName", "age" ]
 							</code>
 						</pre>
 					</section>
+
+					<section>
+						<h2>A Cautionary Tale... (Part 1)</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const err = Error("Fail");
+
+								err.message; // ?
+								err.stack; // ?
+
+								JSON.stringify(err); // ?
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>A Cautionary Tale... (Part 2)</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const err = Error("Fail");
+
+								err.message; // "Fail"
+								err.stack; // "Error: Fail\n   at...""
+
+								JSON.stringify(err); // "{}"
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>A Cautionary Tale... (Part 3)</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const err = Error("Fail");
+
+								Object.getOwnPropertyDescriptors(err);
+
+								/*
+								{
+									stack: 
+									{
+										value: 'Error: Fail\n    at...',
+										writable: true,
+										enumerable: false,
+										configurable: true
+									},
+								    message: 
+									{
+										value: 'Fail',
+										writable: true,
+										enumerable: false,
+										configurable: true
+									}
+								}
+								*/
+							</code>
+						</pre>
+					</section>
+
 				</section>
 			</div>
 		</div>
