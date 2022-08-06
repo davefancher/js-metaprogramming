@@ -1047,6 +1047,216 @@
 						</pre>
 					</section>
 				</section>
+
+				<section>
+					<section>
+						<h2>Intercession</h2>
+						<h4>Intercepting Behavior</h4>
+					</section>
+
+					<section>
+						<h2>Dynamic Objects</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-55|1|20-27|25|5-10|26|12-18|29-36|38-47|50|52-53|55-56|58-61|63-71">
+								function AuditedObject () {
+									const context = {};
+									const log = [];
+								
+									const __getTrap =
+										property =>
+											() => {
+												console.log(`Getting context.${property}`);
+												return Reflect.get(context, property);
+											};
+								
+									const __setTrap =
+										property =>
+											value => {
+												console.log(`Setting context.${property} to ${value}`);
+												Reflect.set(context, property, value);
+												log.push({ key: property, value, timestamp: new Date() });
+											};
+								
+									Object.defineProperty(
+										this,
+										"firstName",
+										{
+											enumerable: true,
+											get: __getTrap("firstName"),
+											set: __setTrap("firstName")
+										});
+								
+									Object.defineProperty(
+										this,
+										"lastName",
+										{
+											enumerable: true,
+											get: __getTrap("lastName"),
+											set: __setTrap("lastName")
+										});
+								
+									Object.defineProperty(
+										this,
+										"history",
+										{
+											enumerable: true,
+											get () {
+												console.log("Getting context history");
+												return log;
+											}
+										});
+								};
+
+								const myObject = new AuditedObject();
+
+								myObject.firstName = "Dave";
+								// Setting context.firstName to Dave
+
+								myObject.lastName = "Fancher";
+								// Setting context.lastName to Fancher
+
+								`${myObject.firstName} ${myObject.lastName}`;
+								// Getting context.firstName
+								// Getting context.lastName
+								// Dave Fancher
+
+								myObject
+									.history
+									.map(h => `[${h.timestamp.toISOString()}] ${h.value} -> ${h.key}`);
+								/*
+									[
+										'[2022-08-06T03:33:59.614Z] Dave -> firstName',
+										'[2022-08-06T03:33:59.615Z] Fancher -> lastName'
+									]
+								*/
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Simple Proxy</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-24|1-2|5|2,6|7-23|8-12|13-22|26|28-29|31-32|34-37|39-47">
+								const auditObject =
+									obj => {
+										const log = [];
+								
+										return new Proxy(
+											obj,
+											{
+												get (target, key) {
+													console.log(`Getting ${key} from target`);
+													if (key === "history") return log;
+													return Reflect.get(target, key);
+												},
+												set (target, key, value) {
+													if (key === "history") {
+														console.log("Cannot rewrite history");
+														return;
+													}
+								
+													console.log(`Setting ${key} to ${value} on target`);
+													Reflect.set(target, key, value);
+													log.push({ key, value, timestamp: new Date() });
+												}
+											});
+									};
+								
+								const myObject = auditObject({});
+								
+								myObject.firstName = "Dave";
+								// Setting firstName to Dave on target
+								
+								myObject.lastName = "Fancher";
+								// Setting lastName to Fancher on target
+								
+								`${myObject.firstName} ${myObject.lastName}`; //?
+								// Getting firstName from target
+								// Getting lastName from target
+								// Dave Fancher
+								
+								myObject
+									.history
+									.map(h => `[${h.timestamp.toISOString()}] ${h.value} -> ${h.key}`); //?
+								/*
+								[
+									'[2022-08-06T03:45:25.174Z] Dave -> firstName',
+									'[2022-08-06T03:45:25.174Z] Fancher -> lastName'
+								]
+								*/
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>More Traps</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="8,13|23-30|31-34">
+								const auditObject =
+									obj => {
+										const log = [];
+								
+										return new Proxy(
+											obj,
+											{
+												get (target, key) {
+													console.log(`Getting ${key} from target`);
+													if (key === "history") return log;
+													return Reflect.get(target, key);
+												},
+												set (target, key, value) {
+													if (key === "history") {
+														console.log("Cannot rewrite history");
+														return;
+													}
+								
+													console.log(`Setting ${key} to ${value} on target`);
+													Reflect.set(target, key, value);
+													log.push({ key, value, timestamp: new Date() });
+												},
+												deleteProperty (target, key) {
+													if (key === "history") {
+														throw new TypeError("Trying to delete history? Really?");
+													}
+								
+													console.log(`Deleting ${key} from target`);
+													Reflect.deleteProperty(target, key);
+												},
+												has (target, key) {
+													console.log(`Looking for ${key} in target`);
+													return key === "history" || Reflect.has(target, key);
+												}
+											}
+										);
+									};
+							</code>
+						</pre>
+					</section>
+				</section>
+
+				<section>
+					<div style="display: flex; flex-direction: row; align-items: flex-end;">
+						<div style="flex: 1 1 300px">
+							<img src="./assets/qrcode_davefancher.github.io.png">
+						</div>
+						<div style="flex: 1 1 300px; text-align: left; padding-left: 20px;">
+							<h2>Thank You!</h2>
+
+							<p style="font-size: 0.5em">
+								Dave Fancher<br />
+								Lead Software Engineer - Vibenomics
+							</p>
+							<hr />
+							<p style="font-size: 0.5em">
+								Twitter: @davefancher<br />
+								LinkedIn: davefancher
+							</p>
+						</div>
+					</div>
+				</section>
 			</div>
 		</div>
 
