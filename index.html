@@ -682,6 +682,199 @@
 						</aside>
 					</section>
 				</section>
+
+				<section>
+					<section>
+						<h2>Modern Reflection/Introspection</h2>
+						<h4>Same Tricks, Even Newer API</h4>
+
+						<aside class="notes">
+							The Reflect type exposes a modern, unified API for reflection and introspection
+						</aside>
+					</section>
+
+					<section>
+						<h2>Defining Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								Reflect.defineProperty(
+									myObject,
+									"age",
+									{
+										configurable: true,
+										enumerable: true,
+										value: 42,
+									});
+
+								/*
+								{
+									firstName: "Dave",
+									lastName: "Fancher",
+									age: 42
+								}
+								*/
+							</code>
+						</pre>
+
+						<aside class="notes">
+							One significant way that Reflect.defineProperty differs from Object.defineProperty is that Object.defineProperty throws an error if the operation fails whereas Reflect.defineProperty returns false.
+						</aside>
+					</section>
+
+					<section>
+						<h2>Deleting Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher",
+									age: 42
+								};
+								
+								void Reflect.deleteProperty(myObject, "age");									
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Accessing/Mutating Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6-7">
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								Reflect.set(myObject, "firstName", "David");
+								Reflect.get(myObject, "firstName");
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Enumerating Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="12|14">
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher"
+								};
+
+								Object.defineProperty(
+									myObject,
+									"age",
+									{ enumerable: false, value: 42 });
+
+								Reflect.ownKeys(myObject);
+
+								// [ "firstName", "lastName", "age" ]
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>Similar to Object.getOwnPropertyNames</li>
+								<li>Includes <em>all</em> property names regardless of the enumerable setting</li>
+								<li>Also includes <em>Symbols</em> which are covered later</li>
+							</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Detecting Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6|13">
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher"
+								};
+
+								Reflect.has(myObject, "age"); // false
+
+								Object.defineProperty(
+									myObject,
+									"age",
+									{ enumerable: false, value: 42 });
+
+								Reflect.has(myObject, "age"); // true
+							</code>
+						</pre>
+
+						<aside class="notes">
+							Returns true or false regardless of the enumerable descriptor
+						</aside>
+					</section>
+				</section>
+
+				<section>
+					<h2>A Practical Example - Validation</h2>
+
+					<pre>
+						<code class="javascript" data-trim data-noescape data-line-numbers="1-51|1-16|2,5-7|9-10|12,14|18-21|30-35|37-41|43|45-49|51">
+							const validateModel =
+								validationModel =>
+									model => {
+										const failures =
+											Reflect
+												.ownKeys(validationModel)
+												.reduce(
+													(acc, key) => {
+														const validate = validationModel[key];
+														const value = model[key];
+							
+														if (!validate(value)) acc.push(key);
+							
+														return acc;
+													},
+													[]);
+							
+										if (failures.length > 0) {
+											const errors = failures.join(", ");
+											throw new Error(`Validation failures: ${errors}`);
+										}
+
+										return model;
+									};
+							
+							const isNonEmptyString =
+								value =>
+									_.isString(value) && value.length > 0;
+							
+							const validatePersonModel =
+								validateModel({
+									firstName: isNonEmptyString,
+									lastName: isNonEmptyString,
+									age: _.isNumber
+								});
+							
+							validatePersonModel({
+								firstName: "Dave",
+								lastName: "Fancher",
+								age: 42
+							});
+
+							// { firstName: 'Dave', lastName: 'Fancher', age: 42 }
+							
+							validatePersonModel({
+								firstName: "Dave",
+								lastName: null,
+								age: "42"
+							});
+
+							// Validation failures: lastName, age
+						</code>
+					</pre>
+			</section>
 			</div>
 		</div>
 
