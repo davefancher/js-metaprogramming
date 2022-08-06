@@ -874,7 +874,179 @@
 							// Validation failures: lastName, age
 						</code>
 					</pre>
-			</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Symbols</h2>
+						<h4>Collision-free Extension Points</h4>
+
+						<aside class="notes">
+							<ul>
+								<li>Symbols are an interesting built-in type in that they're guaranteed to be unique when created with the Symbol constructor.</li>
+								<li>They're also the basis for several built-in features</li>
+							</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Defining Symbols</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								// No Label
+								const mySymbol1 = Symbol();
+								
+								// Label
+								const mySymbol2 = Symbol("test");
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>Symbols will still be unique when created with a label. The label's only purpose is to help identify the symbols when debugging.</li>
+							</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Global Symbols</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const globalSymbol = Symbol.for("myGlobalSymbol");
+
+								globalSymbol === Symbol.for("myGlobalSymbol"); // true
+								
+								Symbol.keyFor(globalSymbol); // myGlobalSymbol								
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<ul>
+								<li>Symbols can be registered within the Global Symbol Registry so they can be easily shared across your code base and referenced by a known key.</li>
+								<li>We register a global symbol with the Symbol.for function.</li>
+								<li>If a symbol does not exist in the GSR for a given key one will be created</li>
+							</ul>
+						</aside>
+					</section>
+
+					<section>
+						<h2>Using Symbols - A Contrived Example</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1|11|14">
+								const greet = Symbol("greet");
+
+								const sayHello =
+									function () {
+										return `Hello, ${this.firstName} ${this.lastName}!`;
+									};
+								
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+									[greet]: sayHello
+								};
+								
+								myObject[greet](); // Hello, Dave Fancher!
+							</code>
+						</pre>
+
+						<aside class="notes">
+							We can attach symbols in object literals as computed properties. We access them similarly through the bracket notation.
+						</aside>
+					</section>
+
+					<section>
+						<h2>Well-Known Symbols</h2>
+
+						<ul>
+							<li class="fragment">Drive many built-in features</li>
+							<li class="fragment">Allow customizing built-in behavior</li>
+							<li class="fragment">
+								Some well-known Symbols
+								<ul>
+									<li class="fragment">Symbol.hasInstance - instanceof</li>
+									<li class="fragment">Symbol.iterator - for..of</li>
+									<li class="fragment">Symbol.split - String.prototype.split</li>
+									<li class="fragment">Symbol.toStringTag - Object.prototype.toString</li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+
+					<section>
+						<h2>Customizing Behavior</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6|8-15|17">
+								const myObject = {
+									firstName: "Dave",
+									lastName: "Fancher",
+								};
+								
+								myObject.toString(); // [object Object]
+								
+								Reflect.defineProperty(
+									myObject,
+									Symbol.toStringTag,
+									{
+										get: function () {
+											return `"${this.firstName} ${this.lastName}"`;
+										}
+									});
+								
+								myObject.toString(); // [object "Dave Fancher"]
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Extending Built-in Objects</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="26-36|1-17|2-3|4|6-14|16|19-20|22-24|26-36">
+								const attachSymbol =
+									target =>
+										fn => {
+											const sym = Symbol();
+								
+											void Reflect.defineProperty(
+												target,
+												sym,
+												{
+													enumerable: false,
+													writable: false,
+													configurable: false,
+													value: fn
+												});
+								
+											return sym;
+										};
+								
+								const attachSymbolToObjectPrototype =
+									attachSymbol(Object.prototype);
+								
+								const PIPE =
+									attachSymbolToObjectPrototype(
+										function (fn) { return fn(this); });
+								
+								({
+									firstName: "Dave",
+									lastName: "Fancher"
+								})
+									[PIPE](o => ({
+										fname: o.firstName,
+										lname: o.lastName,
+										time: new Date()
+									}))
+									[PIPE](o => `[${o.time.toISOString()}] ${o.lname}, ${o.fname}`)
+									[PIPE](s => s.toUpperCase()); //?
+							</code>
+						</pre>
+					</section>
+				</section>
 			</div>
 		</div>
 
