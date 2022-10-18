@@ -242,13 +242,67 @@
 
 				<section>
 					<section>
-						<h2>Legacy Reflection/Introspection</h2>
+						<h2>Reflection/Introspection</h2>
 
 						<h4>Interrogate and Manipulate</h4>
 					</section>
 
 					<section>
-						<h2>Detecting Properties</h2>
+						<h2>Type Detection...maybe</h2>
+	
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								// Numbers
+								typeof 37;                  // number
+								typeof Number(37);          // number
+								typeof new Number(37);      // object
+								typeof NaN;                 // number
+								typeof Number("nope");      // number
+								
+								// Strings
+								typeof "Hello";             // string
+								typeof String("Hello");     // string
+								typeof new String("Hello"); // object
+	
+								// Booleans
+								typeof true;                // boolean
+								typeof Boolean(1);          // boolean
+								typeof new Boolean(1);      // object
+	
+								// Date
+								typeof new Date();          // object
+								
+								// Arrays
+								typeof [ 1, 2, 3 ];         // object
+								
+								// nils
+								typeof null;                // object
+								typeof undefined;           // undefined
+								
+								// functions
+								typeof (function (name) {
+									return `Hello, ${name}`;
+								});                         // function
+								
+								typeof (name => `Hello, ${name}`);  // function
+							</code>
+						</pre>
+
+						<aside class="notes">
+							<p>typeof provides rudimentary support for determining a variable's type</p>
+							<p>As the MDN docs say "typeof is very useful, but it's not as versatile as might be required.". This is due to typeof often returning different things depending on how a value was created or how JavaScript represents other types internally.</p>
+							<p>MDN also provides an alternative implementation but I typically use lodash since I already have a dependency on it.</p>
+						</aside>
+					</section>					
+				</section>
+
+				<section>
+					<section>
+						<h2>Simple (Classic) Reflection</h2>
+					</section>
+
+					<section>
+						<h2>Property Detection</h2>
 
 						<pre>
 							<code class="javascript" data-trim data-noescape data-line-numbers>
@@ -266,7 +320,7 @@
 					</section>
 
 					<section>
-						<h2>Enumerating Properties</h2>
+						<h2>Property Enumeration</h2>
 
 						<pre>
 							<code class="javascript" data-trim data-noescape data-line-numbers>
@@ -332,73 +386,58 @@
 							</code>
 						</pre>
 					</section>
-	
-					<section>
-						<h2>Determing Types...maybe</h2>
-	
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
-								// Numbers
-								typeof 37;                  // number
-								typeof Number(37);          // number
-								typeof new Number(37);      // object
-								typeof NaN;                 // number
-								typeof Number("nope");      // number
-								
-								// Strings
-								typeof "Hello";             // string
-								typeof String("Hello");     // string
-								typeof new String("Hello"); // object
-	
-								// Booleans
-								typeof true;                // boolean
-								typeof Boolean(1);          // boolean
-								typeof new Boolean(1);      // object
-	
-								// Date
-								typeof new Date();          // object
-								
-								// Arrays
-								typeof [ 1, 2, 3 ];         // object
-								
-								// nils
-								typeof null;                // object
-								typeof undefined;           // undefined
-								
-								// functions
-								typeof (function (name) {
-									return `Hello, ${name}`;
-								});                         // function
-								
-								typeof (name => `Hello, ${name}`);  // function
-							</code>
-						</pre>
-
-						<aside class="notes">
-							<p>typeof provides rudimentary support for determining a variable's type</p>
-							<p>As the MDN docs say "typeof is very useful, but it's not as versatile as might be required.". This is due to typeof often returning different things depending on how a value was created or how JavaScript represents other types internally.</p>
-							<p>MDN also provides an alternative implementation but I typically use lodash since I already have a dependency on it.</p>
-						</aside>
-					</section>
 				</section>
 
 				<section>
 					<section>
-						<h2>Revised Reflection/Introspection</h2>
-						<h4>Same tricks, newer API</h4>
+						<h2>Modern Reflection</h2>
+
+						<aside class="notes">
+							<ul>
+								<li>Reflect type improves upon the Object methods</li>
+								<li>Consistent interface with Proxy type</li>
+							</ul>					
+						</aside>
 					</section>
 
 					<section>
-						<h2>Enumerating Properties</h2>
+						<h2>Detecting Properties</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="6">
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-13|6|13">
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher"
+								};
+
+								Reflect.has(myObject, "age"); // false
+
+								Object.defineProperty(
+									myObject,
+									"age",
+									{ enumerable: false, value: 42 });
+
+								Reflect.has(myObject, "age"); // true
+							</code>
+						</pre>
+
+						<aside class="notes">
+							Returns true or false regardless of the enumerable descriptor
+						</aside>
+					</section>
+
+					<section>
+						<h2>Accessing/Mutating Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="6-7">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
 								};
 
-								Object.getOwnPropertyNames(myObject); // [ "firstName", "lastName" ]
+								Reflect.set(myObject, "firstName", "David");
+								Reflect.get(myObject, "firstName");
 							</code>
 						</pre>
 					</section>
@@ -407,55 +446,48 @@
 						<h2>Defining Properties</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="6-12,14-20,22-29">
+							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
 								};
 
-								void Object.defineProperty(
+								Reflect.defineProperty(
 									myObject,
 									"age",
 									{
+										configurable: true,
 										enumerable: true,
-										value: 42
-									});
-								
-								void Object.defineProperty(
-									myObject,
-									"middleName",
-									{
-										enumerable: false,
-										value: "William"
+										writable: true,
+										value: 42,
 									});
 
 								/*
 								{
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42,
-									middleName: "William"
+									age: 42
 								}
 								*/
 							</code>
 						</pre>
 
 						<aside class="notes">
-							<ul>Object.defineProperty adds (or modifies) a property and returns the object it affected</ul>
+							One significant way that Reflect.defineProperty differs from Object.defineProperty is that Object.defineProperty throws an error if the operation fails whereas Reflect.defineProperty returns false.
 						</aside>
 					</section>
 
 					<section>
-						<h2>Property Descriptors</h2>
+						<h2>Getting Property Descriptors</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="6,8-15">
+							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
 								};
-
-								Object.getOwnPropertyDescriptor(myObject, "firstName");
+								
+								Reflect.getOwnPropertyDescriptor(myObject, "firstName");
 
 								/*
 								{
@@ -469,35 +501,38 @@
 						</pre>
 
 						<aside class="notes">
-							<p>Metadata about each property including the value, whether the property should be included for enumeration, whether the property descriptor can be changed, and even middleware functions for intercepting (trapping) gets/sets</p>
+							The Object type has a method to get all property descriptors
 						</aside>
 					</section>
 
 					<section>
-						<h2>Enumerating Properties Revisited</h2>
+						<h2>Enumerating Properties</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="16-17|19-20">
+							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher"
 								};
-
-								void Object.defineProperty(
+								
+								Reflect.defineProperty(
 									myObject,
 									"age",
-									{ enumerable: true, value: 42 });
-								
-								void Object.defineProperty(
-									myObject,
-									"middleName",
-									{ enumerable: false, value: "William" });
+									{
+										configurable: true,
+										enumerable: false,
+										writable: true,
+										value: 42,
+									});
 
-								Object.getOwnPropertyNames(myObject);
-								// [ "firstName", "lastName", "age", "middleName" ]
-								
+								Reflect.ownKeys(myObject);
+								// [ 'firstName', 'lastName', 'age' ]
+
+								Object.getOwnPropertyNames(myObject); //?
+								// [ 'firstName', 'lastName', 'age' ]
+
 								Object.keys(myObject);
-								// [ "firstName", "lastName", "age" ]
+								// [ 'firstName', 'lastName' ]
 							</code>
 						</pre>
 					</section>
@@ -505,7 +540,7 @@
 					<section>
 						<h2>A Cautionary Tale... (Part 1)</h2>
 
-						<pre>
+						<pre class="fragment semi-fade-out">
 							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const err = Error("Fail");
 
@@ -515,12 +550,8 @@
 								JSON.stringify(err); // ?
 							</code>
 						</pre>
-					</section>
 
-					<section>
-						<h2>A Cautionary Tale... (Part 2)</h2>
-
-						<pre>
+						<pre class="fragment fade-in">
 							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const err = Error("Fail");
 
@@ -533,7 +564,7 @@
 					</section>
 
 					<section>
-						<h2>A Cautionary Tale... (Part 3)</h2>
+						<h2>A Cautionary Tale... (Part 2)</h2>
 
 						<pre>
 							<code class="javascript" data-trim data-noescape data-line-numbers>
@@ -559,6 +590,22 @@
 									}
 								}
 								*/
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Deleting Properties</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const myObject = {
+								    firstName: "Dave",
+								    lastName: "Fancher",
+									age: 42
+								};
+								
+								void Reflect.deleteProperty(myObject, "age");									
 							</code>
 						</pre>
 					</section>
@@ -717,139 +764,6 @@
 				</section>
 
 				<section>
-					<section>
-						<h2>Modern Reflection/Introspection</h2>
-						<h4>Same Tricks, Even Newer API</h4>
-
-						<aside class="notes">
-							The Reflect type exposes a modern, unified API for reflection and introspection
-						</aside>
-					</section>
-
-					<section>
-						<h2>Defining Properties</h2>
-
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
-								const myObject = {
-									firstName: "Dave",
-									lastName: "Fancher"
-								};
-
-								Reflect.defineProperty(
-									myObject,
-									"age",
-									{
-										configurable: true,
-										enumerable: true,
-										writable: true
-										value: 42,
-									});
-
-								/*
-								{
-									firstName: "Dave",
-									lastName: "Fancher",
-									age: 42
-								}
-								*/
-							</code>
-						</pre>
-
-						<aside class="notes">
-							One significant way that Reflect.defineProperty differs from Object.defineProperty is that Object.defineProperty throws an error if the operation fails whereas Reflect.defineProperty returns false.
-						</aside>
-					</section>
-
-					<section>
-						<h2>Deleting Properties</h2>
-
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers>
-								const myObject = {
-								    firstName: "Dave",
-								    lastName: "Fancher",
-									age: 42
-								};
-								
-								void Reflect.deleteProperty(myObject, "age");									
-							</code>
-						</pre>
-					</section>
-
-					<section>
-						<h2>Accessing/Mutating Properties</h2>
-
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="6-7">
-								const myObject = {
-									firstName: "Dave",
-									lastName: "Fancher"
-								};
-
-								Reflect.set(myObject, "firstName", "David");
-								Reflect.get(myObject, "firstName");
-							</code>
-						</pre>
-					</section>
-
-					<section>
-						<h2>Enumerating Properties</h2>
-
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="1-12|11-12">
-								const myObject = {
-									firstName: "Dave",
-									lastName: "Fancher"
-								};
-
-								Object.defineProperty(
-									myObject,
-									"age",
-									{ enumerable: false, value: 42 });
-
-								Reflect.ownKeys(myObject);
-								// [ "firstName", "lastName", "age" ]
-							</code>
-						</pre>
-
-						<aside class="notes">
-							<ul>
-								<li>Similar to Object.getOwnPropertyNames</li>
-								<li>Includes <em>all</em> property names regardless of the enumerable setting</li>
-								<li>Also includes <em>Symbols</em> which are covered later</li>
-							</ul>
-						</aside>
-					</section>
-
-					<section>
-						<h2>Detecting Properties</h2>
-
-						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="1-13|6|13">
-								const myObject = {
-								    firstName: "Dave",
-								    lastName: "Fancher"
-								};
-
-								Reflect.has(myObject, "age"); // false
-
-								Object.defineProperty(
-									myObject,
-									"age",
-									{ enumerable: false, value: 42 });
-
-								Reflect.has(myObject, "age"); // true
-							</code>
-						</pre>
-
-						<aside class="notes">
-							Returns true or false regardless of the enumerable descriptor
-						</aside>
-					</section>
-				</section>
-
-				<section>
 					<h2>A Practical Example - Validation</h2>
 
 					<pre>
@@ -990,7 +904,9 @@
 							We can attach symbols in object literals as computed properties. We access them similarly through the bracket notation.
 						</aside>
 					</section>
+				</section>
 
+				<section>
 					<section>
 						<h2>Well-Known Symbols</h2>
 
@@ -1012,6 +928,9 @@
 
 									<div class="fragment" style="flex: 1 1 50%">Symbol.toStringTag</div>
 									<div class="fragment" style="flex: 1 1 50%">Object.prototype.toString</div>
+
+									<div class="fragment" style="flex: 1 1 50%">Symbol.toPrimitive</div>
+									<div class="fragment" style="flex: 1 1 50%">{{type coersions}}</div>
 								</div>
 							</li>
 						</ul>
@@ -1021,10 +940,11 @@
 						<h2>Customizing Behavior</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="1-17|6|8-15|17">
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-31|7|9-16|18|20-35|37-38">
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
+									age: 42
 								};
 								
 								myObject.toString(); // [object Object]
@@ -1037,10 +957,37 @@
 											return `"${this.firstName} ${this.lastName}"`;
 										}
 									});
-								
+
 								myObject.toString(); // [object "Dave Fancher"]
+
+								Reflect.defineProperty(
+									myObject,
+									Symbol.toPrimitive,
+									{
+										value: function (hint) {
+											const { firstName, lastName, age } = this;
+
+											if (hint === "number")
+												return age;
+
+											if (hint === "string")
+												return `${firstName} ${lastName} (${age})`;
+
+											return null;
+										}
+									});
+
+								+myObject; // 42
+								String(myObject); // Dave Fancher (42)
 							</code>
 						</pre>
+					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Extending Built-in Objects</h2>
+						<h4>Using Custom Symbols for Collision-free Extensions</h4>
 					</section>
 
 					<section>
@@ -1082,11 +1029,118 @@
 										lname: o.lastName,
 										time: new Date()
 									}))
-									[PIPE](o => `[${o.time.toISOString()}] ${o.lname}, ${o.fname}`)
-									[PIPE](s => s.toUpperCase()); //?
+									[PIPE](o => `[${o.time.toISOString()}] ${o.lname}, ${o.fname}`)
+									[PIPE](s => s.toUpperCase());
 							</code>
 						</pre>
 					</section>
+
+					<section>
+						<h2>Extending Built-in Objects</h2>
+						<h4>Hiding this</h4>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-39|13-15|26|33-39">
+								const attachSymbol =
+									target =>
+										fn => {
+											const sym = Symbol();
+								
+											void Reflect.defineProperty(
+												target,
+												sym,
+												{
+													enumerable: false,
+													writable: false,
+													configurable: false,
+													value: function () {
+														return fn(this)(...arguments);
+													}
+												});
+								
+											return sym;
+										};
+								
+								const attachSymbolToObjectPrototype =
+									attachSymbol(Object.prototype);
+								
+								const PIPE =
+									attachSymbolToObjectPrototype(
+										context => fn => fn(context)
+									);
+								
+								({
+									firstName: "Dave",
+									lastName: "Fancher"
+								})
+									[PIPE](o => ({
+										fname: o.firstName,
+										lname: o.lastName,
+										time: new Date()
+									}))
+									[PIPE](o => `[${o.time.toISOString()}] ${o.lname}, ${o.fname}`)
+									[PIPE](s => s.toUpperCase());
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Extending Built-in Objects</h2>
+						<h4>Arrays</h4>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-47|1-2|4-28|30-40|42-47">
+								const attachSymbolToArrayPrototype =
+									attachSymbol(Array.prototype);
+								
+								const GROUP_BY =
+									attachSymbolToArrayPrototype(
+										context =>
+											(keySelector, valueSelector) =>
+												context
+													.reduce(
+														(agg, item) => {
+															const key =
+																item
+																	[PIPE](keySelector)
+																	[PIPE](String);
+										
+															const value =
+																item
+																	[PIPE](valueSelector);
+											
+															if (!Reflect.has(agg, key)) {
+																void Reflect.set(agg, key, []);
+															}
+								
+															void Reflect.get(agg, key).push(value);
+								
+															return agg;
+														},
+														{}));
+								
+								([
+									{ fname: "Homer", lname: "Simpson" },
+									{ fname: "Peter", lname: "Griffin" },
+									{ fname: "Lois", lname: "Griffin" },
+									{ fname: "Bart", lname: "Simpson" },
+									{ fname: "Marge", lname: "Simpson" },
+									{ fname: "Stewie", lname: "Griffin" },
+								])
+									[GROUP_BY](
+										v => v.lname,
+										v => v.fname);
+
+								/*
+								{
+									Simpson: [ 'Homer', 'Bart', 'Marge' ],
+									Griffin: [ 'Peter', 'Lois', 'Stewie' ]
+								}
+								*/
+							</code>
+						</pre>
+					</section>
+					
 				</section>
 
 				<section>
