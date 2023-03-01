@@ -310,7 +310,7 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 	
 								"firstName" in myObject;  // true
@@ -330,7 +330,7 @@
 									lastName: "Fancher"
 								};
 
-								myObject.age = 42;
+								myObject.age = 43;
 								myObject["birthdate"] = "1979-12-19";
 							</code>
 						</pre>
@@ -344,7 +344,7 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 
 								const allAttrs = [];
@@ -366,7 +366,7 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 
 								const newObj = {};
@@ -377,7 +377,7 @@
 								/* {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								} */
 							</code>
 						</pre>
@@ -391,7 +391,7 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 	
 								delete myObject.age;        // true
@@ -413,7 +413,7 @@
 							<ul>
 								<li>Reflect type improves upon the Object methods</li>
 								<li>Consistent interface with Proxy type</li>
-							</ul>					
+							</ul>
 						</aside>
 					</section>
 
@@ -432,7 +432,7 @@
 								Object.defineProperty(
 									myObject,
 									"age",
-									{ enumerable: false, value: 42 });
+									{ enumerable: false, value: 43 });
 
 								Reflect.has(myObject, "age"); // true
 							</code>
@@ -460,6 +460,32 @@
 					</section>
 
 					<section>
+						<h2>Defining Properties - Computed Names</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers>
+								const DEVICE_IDENTIFIERS = Object.freeze({
+									PLAYER_ID: "playerId",
+									MAC_ADDRESS: "macAddress",
+									PHONE_NUMBER: "phoneNumber",
+									SERIAL_NUMBER: "serialNumber"
+								});
+
+								const identifierValidators = {
+									[DEVICE_IDENTIFIERS.MAC_ADDRESS]: validateMACAddress,
+									[DEVICE_IDENTIFIERS.PHONE_NUMBER]: validatePhoneNumber,
+									[DEVICE_IDENTIFIERS.PLAYER_ID]: validatePlayerId,
+									[DEVICE_IDENTIFIERS.SERIAL_NUMBER]: validateSerialNumber
+								};
+							</code>
+						</pre>
+
+						<aside class="notes">
+							ES6 feature - we'll come back to this in a bit
+						</aside>
+					</section>
+
+					<section>
 						<h2>Defining Properties</h2>
 
 						<pre>
@@ -476,14 +502,14 @@
 										configurable: true,
 										enumerable: true,
 										writable: true,
-										value: 42,
+										value: 43,
 									}); // true
 
 								/*
 								{
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								}
 								*/
 
@@ -501,7 +527,7 @@
 								{
 									firstName: 'Dave',
 									lastName: 'Fancher',
-									age: 42,
+									age: 43,
 									birthDate: '1979-12-19'
 								}
 								*/
@@ -561,7 +587,7 @@
 										configurable: true,
 										enumerable: false,
 										writable: true,
-										value: 42,
+										value: 43,
 									});
 
 								Reflect.ownKeys(myObject);
@@ -699,15 +725,70 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 
-								Object.values(myObject); // [ "Dave", "Fancher", 42 ]
+								Object.values(myObject); // [ "Dave", "Fancher", 43 ]
 							</code>
 						</pre>
 
 						<aside class="notes">
 							Object.values returns an array of all of the property values within an object in the order in which they're defined
+						</aside>
+					</section>
+
+					<section>
+						<h2>Enumerating Property Values</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-6|8|10-11">
+								const DEVICE_IDENTIFIERS = Object.freeze({
+									PLAYER_ID: "playerId",
+									MAC_ADDRESS: "macAddress",
+									PHONE_NUMBER: "phoneNumber",
+									SERIAL_NUMBER: "serialNumber"
+								});
+
+								const validIdentifiers = Object.values(DEVICE_IDENTIFIERS)
+								
+								validIdentifiers.includes("playerId"); // true
+								validIdentifiers.includes("imei"); // false
+							</code>
+						</pre>
+					</section>
+
+					<section>
+						<h2>Property Value Enumeration with Computed Property Names</h2>
+
+						<pre>
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-6|8-13|15-22|9,17-22|10,17-22|11,17-22|12,17-22">
+								const DEVICE_IDENTIFIERS = Object.freeze({
+									PLAYER_ID: "playerId",
+									MAC_ADDRESS: "macAddress",
+									PHONE_NUMBER: "phoneNumber",
+									SERIAL_NUMBER: "serialNumber"
+								});
+
+								const identifierFormatters = {
+									[DEVICE_IDENTIFIERS.MAC_ADDRESS]: formatMACAddress,
+									[DEVICE_IDENTIFIERS.PHONE_NUMBER]: formatPhoneNumber,
+									[DEVICE_IDENTIFIERS.PLAYER_ID]: formatPlayerId,
+									[DEVICE_IDENTIFIERS.SERIAL_NUMBER]: formatSerialNumber
+								};
+
+								Object
+									.values(DEVICE_IDENTIFIERS)
+									.forEach(identifier => {
+										if (Reflect.has(model, identifier)) {
+											const format = identifierFormatters[identifier];
+											model[identifier] = format(model[identifier]);
+										}
+									});
+							</code>
+						</pre>
+
+						<aside class="notes">
+							ES6 feature
 						</aside>
 					</section>
 
@@ -724,7 +805,7 @@
 								void Object.defineProperty(
 									myObject,
 									"age",
-									{ enumerable: true, value: 42 });
+									{ enumerable: true, value: 43 });
 
 								void Object.defineProperty(
 									myObject,
@@ -736,12 +817,14 @@
 								    .map(([ k, v ]) => `${k} is ${v}`)
 								    .join("; ");
 									
-								// firstName is Dave; lastName is Fancher; age is 42
+								// firstName is Dave; lastName is Fancher; age is 43
 							</code>
 						</pre>
 
 						<aside class="notes">
 							Essentially a combination of Object.keys and Object.values, Object.entries gets an array of the own key/value pairs from an object
+
+							Combines nicely with the attribute pattern in MongoDB
 						</aside>
 					</section>
 
@@ -753,7 +836,7 @@
 								const entries = [
 								    [ "firstName", "Dave" ],
 								    [ "lastName", "Fancher" ],
-								    [ "age", 42 ]
+								    [ "age", 43 ]
 								];
 
 								Object.fromEntries(entries);
@@ -762,11 +845,15 @@
 								{
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								}
 								*/
 							</code>
 						</pre>
+
+						<aside class="notes">
+							Also combines nicely with the attribute pattern in MongoDB
+						</aside>
 					</section>
 
 					<section>
@@ -813,19 +900,19 @@
 								};
 								
 								const myAddress = {
-								    address: { city: "Carmel", state: "IN" }
+								    address: { city: "Indianapolis", state: "IN" }
 								};
 
 								Object.assign(
 								    myObject,
-								    { firstName: "David", age: 42 },
+								    { firstName: "David", age: 43 },
 								    myAddress);
 
 								/*
 								{
 									firstName: "David",
 									lastName: "Fancher",
-									age: 42,
+									age: 43,
 									address: {
 										city: "Indianapolis",
 										state: "IN"
@@ -881,15 +968,15 @@
 							validatePersonModel({
 								firstName: "Dave",
 								lastName: "Fancher",
-								age: 42
+								age: 43
 							});
 
-							// { firstName: 'Dave', lastName: 'Fancher', age: 42 }
+							// { firstName: 'Dave', lastName: 'Fancher', age: 43 }
 							
 							validatePersonModel({
 								firstName: "Dave",
 								lastName: null,
-								age: "42"
+								age: "43"
 							});
 
 							// Validation failures: lastName, age
@@ -958,7 +1045,7 @@
 						<h2>Using Symbols - A Contrived Example</h2>
 
 						<pre>
-							<code class="javascript" data-trim data-noescape data-line-numbers="1|11|14">
+							<code class="javascript" data-trim data-noescape data-line-numbers="1-14|1|11|14">
 								const greet = Symbol("greet");
 
 								const sayHello =
@@ -1020,7 +1107,7 @@
 								const myObject = {
 									firstName: "Dave",
 									lastName: "Fancher",
-									age: 42
+									age: 43
 								};
 								
 								myObject.toString(); // [object Object]
@@ -1053,8 +1140,8 @@
 										}
 									});
 
-								+myObject; // 42
-								String(myObject); // Dave Fancher (42)
+								+myObject; // 43
+								String(myObject); // Dave Fancher (43)
 							</code>
 						</pre>
 					</section>
