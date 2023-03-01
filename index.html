@@ -17,19 +17,25 @@
 		<div class="reveal">
 			<div class="slides">
 				<section>
-					<h2>JavaScript Metaprogramming</h2>
-					<hr />
-					<h3>
-						Dave Fancher<br />
-						<span style="font-size: .5em; opacity: 50%;">
-							Lead Software Engineer - Vibenomics
-						</span>
-					</h3>
-				</section>
+					<div style="display: flex; flex-direction: row; align-items: flex-end;">
+						<div style="flex: 1 1 300px">
+							<img src="./assets/DSC_5422@0.5x.jpg" style="border-radius: 25px;">
+						</div>
+						<div style="flex: 1 1 300px; text-align: left; padding-left: 20px;">
+							<h2>JavaScript Metaprogramming</h2>
 
-				<!-- <section>
-					<img src="" />
-				</section> -->
+							<p style="font-size: 0.5em">
+								Dave Fancher<br />
+								Lead Software Engineer - Vibenomics
+							</p>
+							<hr />
+							<p style="font-size: 0.5em; margin-bottom: 1.5em;">
+								Twitter: @davefancher<br />
+								LinkedIn: davefancher
+							</p>
+						</div>
+					</div>
+				</section>
 
 				<section>
 					<h2>About This Presentation</h2>
@@ -145,7 +151,7 @@
 						</aside>
 					</section>
 
-					<section>
+					<section data-transition="fade-out">
 						<h2>Function Constructor - Global Scope</h2>
 
 						<pre>
@@ -161,7 +167,7 @@
 						</pre>
 					</section>
 
-					<section>
+					<section data-transition="fade">
 						<h2>Function Constructor - Global Scope</h2>
 
 						<pre>
@@ -177,7 +183,7 @@
 						</pre>
 					</section>
 
-					<section>
+					<section data-transition="fade-in">
 						<h2>Function Constructor - Global Scope</h2>
 
 						<pre>
@@ -200,7 +206,8 @@
 							<code class="javascript" data-trim data-noescape data-line-numbers>
 								const sayHello =
 									new Function(
-										"name", "return `[func] Hello, ${name}`");
+										"name",
+										"return `[func] Hello, ${name}`");
 
 								sayHello("Dave"); // [func] Hello, Dave
 							</code>
@@ -407,7 +414,7 @@
 
 				<section>
 					<section>
-						<h2>Modern Reflection</h2>
+						<h2>"Modern" Reflection</h2>
 
 						<aside class="notes">
 							<ul>
@@ -1516,24 +1523,26 @@
 				</section>
 
 				<section>
-					<div style="display: flex; flex-direction: row; align-items: flex-end;">
-						<div style="flex: 1 1 300px">
-							<img src="./assets/qrcode_davefancher.github.io.png">
-						</div>
-						<div style="flex: 1 1 300px; text-align: left; padding-left: 20px;">
-							<h2>Thank You!</h2>
+					<section>
+						<div style="display: flex; flex-direction: row; align-items: flex-end;">
+							<div style="flex: 1 1 300px">
+								<img src="./assets/qrcode_davefancher.github.io.png" style="border-radius: 25px;">
+							</div>
+							<div style="flex: 1 1 300px; text-align: left; padding-left: 20px;">
+								<h2>Thank You!</h2>
 
-							<p style="font-size: 0.5em">
-								Dave Fancher<br />
-								Lead Software Engineer - Vibenomics
-							</p>
-							<hr />
-							<p style="font-size: 0.5em">
-								Twitter: @davefancher<br />
-								LinkedIn: davefancher
-							</p>
+								<p style="font-size: 0.5em">
+									Dave Fancher<br />
+									Lead Software Engineer - Vibenomics
+								</p>
+								<hr />
+								<p style="font-size: 0.5em; margin-bottom: 1.5em;">
+									Twitter: @davefancher<br />
+									LinkedIn: davefancher
+								</p>
+							</div>
 						</div>
-					</div>
+					</section>
 				</section>
 			</div>
 		</div>
